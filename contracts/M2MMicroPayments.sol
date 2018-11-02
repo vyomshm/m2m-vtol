@@ -10,40 +10,40 @@ import "./cryptography/ECDSA.sol";
 */
 contract M2MMicroPayments is Ownable{
 
-	// number of blocks to wait after an uncooperative close is initiated
-	uint256 public challengePeriod;
+    // number of blocks to wait after an uncooperative close is initiated
+    uint256 public challengePeriod;
 
-	// Future TO-DO - implement upgradeable proxy architecture
-	// contract semantic version
-	string public constant VERSION = '0.0.1';
+    // Future TO-DO - implement upgradeable proxy architecture
+    // contract semantic version
+    string public constant VERSION = '0.0.1';
 
-	struct Channel{
-		uint256 deposit;
-		uint256 openBlockNumber;
-	}
+    struct Channel{
+        uint256 deposit;
+        uint256 openBlockNumber;
+    }
 
-	struct ClosingRequest{
-		uint256 closingBalance;
-		uint256 settleBlockNumber;
-	}
+    struct ClosingRequest{
+        uint256 closingBalance;
+        uint256 settleBlockNumber;
+    }
 
-	// IERC20 public token;
+    // IERC20 public token;
 
-	mapping (bytes32 => Channel) public channels;
-	mapping (bytes32 => ClosingRequest) public closingRequests;
+    mapping (bytes32 => Channel) public channels;
+    mapping (bytes32 => ClosingRequest) public closingRequests;
 
-	mapping (address => bool) public trustedContracts;
-	mapping (bytes32 => uint256) public withdrawnBalances;
-	
-	/**
+    mapping (address => bool) public trustedContracts;
+    mapping (bytes32 => uint256) public withdrawnBalances;
+    
+    /**
      * @notice Modifier to make a function callable only if the sender is trusted
      */
-	modifier isTrusted() {
-		require (trustedContracts[msg.sender], 'address not trusted'); 
-		_; 
-	}
+    modifier isTrusted() {
+        require (trustedContracts[msg.sender], 'address not trusted'); 
+        _; 
+    }
 
-	//////////
+    //////////
     // Events
     //////////
 
@@ -94,9 +94,11 @@ contract M2MMicroPayments is Ownable{
         uint256 _challengePeriod,
         address[] _trustedContracts)
     public {
-    	require(_challengePeriod >= 500, "challenge period must span atleast 500 blocks");
-    	challengePeriod = _challengePeriod;
-    	addTrustedContracts(_trustedContracts);
+        require(_challengePeriod >= 500, "challenge period must span atleast 500 blocks");
+        challengePeriod = _challengePeriod;
+        if(_trustedContracts.length >= 1){
+            addTrustedContracts(_trustedContracts);
+        }
     }
 
     /*
@@ -109,8 +111,8 @@ contract M2MMicroPayments is Ownable{
      * @param _deposit amount of ETH escrowed by the client
      */
     function createChannel(address _receiver, uint256 _deposit) external payable{
-    	require(msg.value == _deposit, 'invalid deposit');
-    	createChannelPrivate(msg.sender, _receiver, _deposit);
+        require(msg.value == _deposit, 'invalid deposit');
+        createChannelPrivate(msg.sender, _receiver, _deposit);
     }
 
     /**
@@ -124,8 +126,8 @@ contract M2MMicroPayments is Ownable{
         uint256 _openBlockNumber,
         uint256 _addedDeposit)
     external payable {
-    	require(msg.value == _addedDeposit, 'invalid topUp value');
-    	updateInternalBalanceStructs(
+        require(msg.value == _addedDeposit, 'invalid topUp value');
+        updateInternalBalanceStructs(
             msg.sender,
             _receiver,
             _openBlockNumber,
@@ -144,9 +146,9 @@ contract M2MMicroPayments is Ownable{
         uint256 _balance,
         bytes _balanceMsgSig)
     external {
-    	require(_balance > 0, "zero withdrawal amount");
+        require(_balance > 0, "zero withdrawal amount");
 
-    	// Derive sender address from signed balance proof
+        // Derive sender address from signed balance proof
         address sender = extractBalanceProofSignature(
             msg.sender,
             _openBlockNumber,
@@ -241,7 +243,7 @@ contract M2MMicroPayments is Ownable{
         require(closingRequests[key].settleBlockNumber > 0, 'challenge period has not been started');
 
         // Make sure the challenge_period has ended
-	    require(block.number > closingRequests[key].settleBlockNumber, 'challenge period still active');
+        require(block.number > closingRequests[key].settleBlockNumber, 'challenge period still active');
 
         settleChannel(msg.sender, _receiver, _openBlockNumber,
             closingRequests[key].closingBalance
@@ -281,7 +283,8 @@ contract M2MMicroPayments is Ownable{
      * @param _trustedContracts Array of contract addresses that can be trusted to open and top up channels on behalf of a sender
      */
     function addTrustedContracts(address[] _trustedContracts) onlyOwner public {
-    	for (uint256 i = 0; i < _trustedContracts.length; i++) {
+        require(_trustedContracts.length >= 1, "no contract addresses provided");
+        for (uint256 i = 0; i < _trustedContracts.length; i++) {
             if (_addressHasCode(_trustedContracts[i])) {
                 trustedContracts[_trustedContracts[i]] = true;
                 emit TrustedContract(_trustedContracts[i], true);
@@ -294,7 +297,7 @@ contract M2MMicroPayments is Ownable{
      * @param _trustedContracts Array of contract addresses that can no longer be trusted to open and top up channels on behalf of a sender
      */
     function removeTrustedContracts(address[] _trustedContracts) onlyOwner public {
-    	for (uint256 i = 0; i < _trustedContracts.length; i++) {
+        for (uint256 i = 0; i < _trustedContracts.length; i++) {
             if (trustedContracts[_trustedContracts[i]]) {
                 trustedContracts[_trustedContracts[i]] = false;
                 emit TrustedContract(_trustedContracts[i], false);
@@ -314,9 +317,9 @@ contract M2MMicroPayments is Ownable{
         uint256 _openBlockNumber)
     public pure returns (bytes32 data) {
         return keccak256(abi.encodePacked(
-        	_sender, 
-        	_receiver, 
-        	_openBlockNumber
+            _sender, 
+            _receiver, 
+            _openBlockNumber
         ));
     }
 
@@ -335,7 +338,7 @@ contract M2MMicroPayments is Ownable{
         uint256 _balance,
         bytes _balanceMsgSig)
     public view returns(address) {
-    	bytes32 message_hash = keccak256(abi.encodePacked(
+        bytes32 message_hash = keccak256(abi.encodePacked(
             abi.encodePacked(
                 'string message_id',
                 'address receiver',
@@ -415,8 +418,8 @@ contract M2MMicroPayments is Ownable{
         address _receiver,
         uint256 _deposit)
     private {
-    	// set a 1 ETH deposit limit until fully tested for security violations
-    	require(_deposit <= 1 ether, 'deposit limit crossed');
+        // set a 1 ETH deposit limit until fully tested for security violations
+        require(_deposit <= 1 ether, 'deposit limit crossed');
 
         // Create unique identifier from sender, receiver and current block number
         bytes32 key = getKey(_sender, _receiver, block.number);
@@ -443,7 +446,7 @@ contract M2MMicroPayments is Ownable{
         uint256 _openBlockNumber,
         uint256 _addedDeposit)
     private {
-    	require(_addedDeposit > 0, 'topUp amount must not be zero');
+        require(_addedDeposit > 0, 'topUp amount must not be zero');
         require(_openBlockNumber > 0, 'invalid openBlockNumber');
 
         bytes32 key = getKey(_sender, _receiver, _openBlockNumber);
