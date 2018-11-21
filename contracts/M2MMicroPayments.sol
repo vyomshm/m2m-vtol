@@ -338,21 +338,22 @@ contract M2MMicroPayments is Ownable{
         uint256 _balance,
         bytes _balanceMsgSig)
     public view returns(address) {
+        // TO-DO - replace legacy implementation with EIP712 implementation for signing typed data
         bytes32 message_hash = keccak256(abi.encodePacked(
-            abi.encodePacked(
+            keccak256(abi.encodePacked(
                 'string message_id',
                 'address receiver',
                 'uint32 block_created',
                 'uint192 balance',
                 'address contract'
-            ),
-            abi.encodePacked(
+            )),
+            keccak256(abi.encodePacked(
                 'Sender balance proof signature',
                 _receiver,
                 _openBlockNumber,
                 _balance,
                 address(this)
-            )
+            ))
         ));
 
         // Derive address from signature
@@ -375,27 +376,22 @@ contract M2MMicroPayments is Ownable{
         uint256 _balance,
         bytes _closingSig)
     public view returns (address) {
-        // The variable names from below will be shown to the sender when signing
-        // the balance proof, so they have to be kept in sync with the Dapp client.
-        // The hashed strings should be kept in sync with this function's parameters
-        // (variable names and types).
-        // ! Note that EIP712 might change how hashing is done, triggering a
-        // new contract deployment with updated code.
+        // TO-DO - replace legacy implementation with EIP712 implementation for signing typed data
         bytes32 message_hash = keccak256(abi.encodePacked(
-            abi.encodePacked(
+            keccak256(abi.encodePacked(
                 'string message_id',
                 'address sender',
                 'uint32 block_created',
                 'uint192 balance',
                 'address contract'
-            ),
-            abi.encodePacked(
+            )),
+            keccak256(abi.encodePacked(
                 'Receiver closing signature',
                 _sender,
                 _openBlockNumber,
                 _balance,
                 address(this)
-            )
+            ))
         ));
 
         // Derive address from signature
