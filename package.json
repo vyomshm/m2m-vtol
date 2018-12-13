@@ -9,8 +9,16 @@
   "scripts": {
     "compile": "truffle compile --all",
     "migrate": "truffle migrate --reset --all",
-    "test": "truffle test"
+    "test": "truffle test",
+    "develop": "truffle develop",
+    "sign-demo": "node scripts/genSign.js"
   },
   "author": "Vyom Sharma (@vyomshm)",
-  "license": "Apache-2.0"
+  "license": "Apache-2.0",
+  "dependencies": {
+    "ethereumjs-abi": "^0.6.5",
+    "ethereumjs-util": "^6.0.0",
+    "ganache-cli": "^6.2.3",
+    "web3": "^1.0.0-beta.37"
+  }
 }
