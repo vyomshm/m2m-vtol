@@ -11,7 +11,8 @@
     "migrate": "truffle migrate --reset --all",
     "test": "truffle test",
     "develop": "truffle develop",
-    "sign-demo": "node scripts/genSign.js"
+    "sign-demo": "node scripts/genSign.js",
+    "motor": "node scripts/demoPutRPM.js"
   },
   "author": "Vyom Sharma (@vyomshm)",
   "license": "Apache-2.0",
@@ -19,6 +20,7 @@
     "ethereumjs-abi": "^0.6.5",
     "ethereumjs-util": "^6.0.0",
     "ganache-cli": "^6.2.3",
+    "request": "^2.88.0",
     "web3": "^1.0.0-beta.37"
   }
 }
