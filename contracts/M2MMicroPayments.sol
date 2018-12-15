@@ -343,8 +343,8 @@ contract M2MMicroPayments is Ownable{
             keccak256(abi.encodePacked(
                 'string message_id',
                 'address receiver',
-                'uint32 block_created',
-                'uint192 balance',
+                'uint256 block_created',
+                'uint256 balance',
                 'address contract'
             )),
             keccak256(abi.encodePacked(
@@ -381,8 +381,8 @@ contract M2MMicroPayments is Ownable{
             keccak256(abi.encodePacked(
                 'string message_id',
                 'address sender',
-                'uint32 block_created',
-                'uint192 balance',
+                'uint256 block_created',
+                'uint256 balance',
                 'address contract'
             )),
             keccak256(abi.encodePacked(
